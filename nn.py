@@ -340,21 +340,22 @@ if __name__=='__main__':
     Test the code here
 
     Step 1: Define the variables, with unique names
-    '''
-    x = variable('x')
-    y = variable('y')
+    Example:
+        x = variable('x')
+        y = variable('y')
 
-    '''
+
     Step 2: Define the function
-    '''
-    f = div(1, add(1, exp(neg(x)))) # f = 1 / (1 + exp(-x))
+    Example: f = div(1, add(1, exp(neg(x)))) <=== This corresponds to f = 1 / (1 + exp(-x))
 
-    '''
+
     Step 3: Define the variables dictionary
-    '''
-    variables = {'x': 3, 'y': 2}
+    Example: variables = {'x': 3, 'y': 2}
 
-    '''
+
     No need to change this part
     '''
+    # Code below
+
+    # Code above
     print_output(f, variables)
