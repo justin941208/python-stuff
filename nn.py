@@ -352,8 +352,6 @@ if __name__=='__main__':
     Step 3: Define the variables dictionary
     Example: variables = {'x': 3, 'y': 2}
 
-
-    No need to change this part
     '''
     # Code below
 
