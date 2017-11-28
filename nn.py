@@ -360,17 +360,21 @@ if __name__=='__main__':
 
 
     Step 2: Define the function
-    Example: f = div(1, add(1, exp(neg(x)))) <=== This corresponds to f = 1 / (1 + exp(-x))
+    Example:
+        f = div(1, add(1, exp(neg(x)))) <=== This corresponds to f = 1 / (1 + exp(-x))
 
 
     Step 3: Define the variables dictionary
-    Example: variables = {'x': 3, 'y': 2}
+    Example:
+        variables = {'x': 3, 'y': 2}
 
     '''
-    # Code below
+
+    # Insert code below
     x = variable('x')
     y = variable('y')
     f = pwr(x, 2)
     variables = {'x': 0, 'y': 2}
-    # Code above
+    # Insert code above
+
     print_output(f, variables)
