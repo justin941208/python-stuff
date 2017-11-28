@@ -1,6 +1,6 @@
 '''
 Just for fun: a simple module for automatically calculating the exact gradient
-of a SCALAR function.
+of a real SCALAR function.
 
 Supported operations:
 
@@ -238,11 +238,17 @@ class pwr(node):
 
     def forward(self):
         try:
-            if self.base.value <= 0:
-                raise ValueError
+            if self.base.value == 0:
+                assert self.power.value > 0
+            if not float(self.power.value).is_integer():
+                if self.base.value < 0:
+                    raise ValueError
             self.value = self.base.value ** self.power.value
+        except AssertionError:
+            print(message('Error: Power must be positive if base is zero!'))
+            sys.exit()
         except ValueError:
-            print(message('Error: Base of power function must be positive!'))
+            print(message('Error: Base must be non-negative unless power is an integer!'))
             sys.exit()
 
     def backprop(self):
@@ -364,7 +370,7 @@ if __name__=='__main__':
     # Code below
     x = variable('x')
     y = variable('y')
-    f = div(1, add(1, exp(neg(x))))
-    variables = {'x': 3, 'y': 2}
+    f = pwr(x, 2)
+    variables = {'x': 0, 'y': 2}
     # Code above
     print_output(f, variables)
