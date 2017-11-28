@@ -15,8 +15,19 @@ Power
 '''
 
 import math as m
+import sys
 
 NUMS = ['float', 'int']
+
+def message(in_str, n=30):
+    out = (
+        '=' * n + \
+        '\n' * 2 + \
+        in_str + \
+        '\n' * 2 + \
+        '=' * n
+        )
+    return out
 
 class node(object):
     def __init__(self):
@@ -45,6 +56,30 @@ class variable(node):
         self.graph.append(self)
         self.is_var = True
 
+def check_type_and_add(sel, input_dict):
+    '''
+    A utility function that checks whether an input is valid, and adds inputs to
+    instance if all inputs are valid.
+
+    '''
+    node_name = type(sel).__name__
+    for varname in input_dict:
+        var = input_dict[varname]
+        try:
+            if type(var).__name__ in NUMS:
+                exec('sel.{} = constant(input_dict["{}"])'.format(varname, varname))
+            elif isinstance(var, node):
+                exec('sel.{} = input_dict["{}"]'.format(varname, varname))
+            else:
+                raise TypeError
+        except TypeError:
+            msg = (
+                'Error: Inputs of "{}" node must be of "node", "float", or ' + \
+                '"int" type. Got "{}" instead.'
+                ).format(node_name, type(var).__name__)
+            print(message(msg))
+            sys.exit()
+
 class neg(node):
     '''
     Inputs: x
@@ -53,14 +88,8 @@ class neg(node):
     '''
     def __init__(self, x):
         node.__init__(self)
-        if type(x).__name__ in NUMS:
-            self.x = constant(x)
-        elif isinstance(x, node):
-            self.x = x
-        else:
-            raise TypeError('Inputs must be of node, float, or int type. Got {}'.format(
-                type(var).__name__
-            ))
+        input_dict = {'x': x}
+        check_type_and_add(self, input_dict)
         self.graph = self.x.graph + [self]
 
     def forward(self):
@@ -77,15 +106,8 @@ class add(node):
     '''
     def __init__(self, x, y):
         node.__init__(self)
-        for var, varname in zip([x, y], ['x', 'y']):
-            if type(var).__name__ in NUMS:
-                exec('self.{} = constant({})'.format(varname, varname))
-            elif isinstance(var, node):
-                exec('self.{} = {}'.format(varname, varname))
-            else:
-                raise TypeError('Inputs must be of node, float, or int type. Got {}'.format(
-                    type(var).__name__
-                ))
+        input_dict = {'x': x, 'y': y}
+        check_type_and_add(self, input_dict)
         self.graph = self.x.graph + self.y.graph + [self]
 
     def forward(self):
@@ -103,15 +125,8 @@ class sub(node):
     '''
     def __init__(self, x, y):
         node.__init__(self)
-        for var, varname in zip([x, y], ['x', 'y']):
-            if type(var).__name__ in NUMS:
-                exec('self.{} = constant({})'.format(varname, varname))
-            elif isinstance(var, node):
-                exec('self.{} = {}'.format(varname, varname))
-            else:
-                raise TypeError('Inputs must be of node, float, or int type. Got {}'.format(
-                    type(var).__name__
-                ))
+        input_dict = {'x': x, 'y': y}
+        check_type_and_add(self, input_dict)
         self.graph = self.x.graph + self.y.graph + [self]
 
     def forward(self):
@@ -129,15 +144,8 @@ class mult(node):
     '''
     def __init__(self, x, y):
         node.__init__(self)
-        for var, varname in zip([x, y], ['x', 'y']):
-            if type(var).__name__ in NUMS:
-                exec('self.{} = constant({})'.format(varname, varname))
-            elif isinstance(var, node):
-                exec('self.{} = {}'.format(varname, varname))
-            else:
-                raise TypeError('Inputs must be of node, float, or int type. Got {}'.format(
-                    type(var).__name__
-                ))
+        input_dict = {'x': x, 'y': y}
+        check_type_and_add(self, input_dict)
         self.graph = self.x.graph + self.y.graph + [self]
 
     def forward(self):
@@ -152,26 +160,21 @@ class div(node):
     Inputs: x, y
     Returns: a node with value x / y
 
-    Raises ValueError if y is 0
+    Raises error if y is 0
 
     '''
     def __init__(self, x, y):
         node.__init__(self)
-        for var, varname in zip([x, y], ['x', 'y']):
-            if type(var).__name__ in NUMS:
-                exec('self.{} = constant({})'.format(varname, varname))
-            elif isinstance(var, node):
-                exec('self.{} = {}'.format(varname, varname))
-            else:
-                raise TypeError('Inputs must be of node, float, or int type. Got {}'.format(
-                    type(var).__name__
-                ))
+        input_dict = {'x': x, 'y': y}
+        check_type_and_add(self, input_dict)
         self.graph = self.x.graph + self.y.graph + [self]
 
     def forward(self):
-        if self.y.value == 0:
-            raise ValueError('Divison by zero.')
-        self.value = self.x.value / self.y.value
+        try:
+            self.value = self.x.value / self.y.value
+        except ZeroDivisionError:
+            print(message('Error: Cannot divide by zero!'))
+            sys.exit()
 
     def backprop(self):
         if not self.x.is_const: self.x.grad += self.grad / self.y.value
@@ -185,14 +188,8 @@ class exp(node):
     '''
     def __init__(self, x):
         node.__init__(self)
-        if type(x).__name__ in NUMS:
-            self.x = constant(x)
-        elif isinstance(x, node):
-            self.x = x
-        else:
-            raise TypeError('Inputs must be of node, float, or int type. Got {}'.format(
-                type(var).__name__
-            ))
+        input_dict = {'x': x}
+        check_type_and_add(self, input_dict)
         self.graph = self.x.graph + [self]
 
     def forward(self):
@@ -206,27 +203,21 @@ class log(node):
     Inputs: x
     Returns: a node with value ln(x)
 
-    Raises ValueError if x <= 0
+    Raises error if x <= 0
 
     '''
     def __init__(self, x):
         node.__init__(self)
-        if type(x).__name__ in NUMS:
-            self.x = constant(x)
-        elif isinstance(x, node):
-            self.x = x
-        else:
-            raise TypeError('Inputs must be of node, float, or int type. Got {}'.format(
-                type(var).__name__
-            ))
+        input_dict = {'x': x}
+        check_type_and_add(self, input_dict)
         self.graph = self.x.graph + [self]
 
     def forward(self):
-        if self.x.value <= 0:
-            raise ValueError('Logarithm only takes positive values. Got {}'.format(
-                self.x.value
-            ))
-        self.value = m.log(self.x.value)
+        try:
+            self.value = m.log(self.x.value)
+        except ValueError:
+            print(message('Error: Logarithm only takes positive values!'))
+            sys.exit()
 
     def backprop(self):
         if not self.x.is_const: self.x.grad += self.grad / self.x.value
@@ -236,26 +227,23 @@ class pwr(node):
     Inputs: base, power
     Returns: a node with value base ** power
 
-    Raises ValueError if base <= 0
+    Raises error if base <= 0
 
     '''
     def __init__(self, base, power):
         node.__init__(self)
-        for var, varname in zip([base, power], ['base', 'power']):
-            if type(var).__name__ in NUMS:
-                exec('self.{} = constant({})'.format(varname, varname))
-            elif isinstance(var, node):
-                exec('self.{} = {}'.format(varname, varname))
-            else:
-                raise TypeError('Inputs must be of node, float, or int type. Got {}'.format(
-                    type(var).__name__
-                ))
+        input_dict = {'base': base, 'power': power}
+        check_type_and_add(self, input_dict)
         self.graph = self.base.graph + self.power.graph + [self]
 
     def forward(self):
-        if self.base.value <= 0:
-            raise ValueError('Base must be positive. Got {}'.format(self.base.value))
-        self.value = self.base.value ** self.power.value
+        try:
+            if self.base.value <= 0:
+                raise ValueError
+            self.value = self.base.value ** self.power.value
+        except ValueError:
+            print(message('Error: Base of power function must be positive!'))
+            sys.exit()
 
     def backprop(self):
         if not self.base.is_const:
@@ -277,14 +265,16 @@ class ComputationalGraph(object):
         for node in self.nodes:
             node.grad = 0
             if node.is_var:
-                if node.name in self.vars and node is not self.vars[node.name]:
-                    raise Exception(
-                        'Variable name {} is used for different variables.'.format(
-                            node.name
-                        )
-                    )
-                else:
+                try:
+                    if node.name in self.vars and node is not self.vars[node.name]:
+                        raise RuntimeError
                     self.vars[node.name] = node
+                except RuntimeError:
+                    msg = message(
+                        'Error: Variable name "{}" used for different variables!'
+                        ).format(node.name)
+                    print(msg)
+                    sys.exit()
 
     def forward(self, variables):
         '''
@@ -293,25 +283,34 @@ class ComputationalGraph(object):
 
         '''
         for var in self.vars:
-            if var not in variables:
-                raise Exception('Value for the variable {} is not given.'.format(var))
+            try:
+                if var not in variables:
+                    raise RuntimeError
+                self.vars[var].value = variables[var]
+            except RuntimeError:
+                print(message('Error: Value for variable {} is not given!').format(
+                    var
+                    ))
+                sys.exit()
         for node in self.nodes:
-            if node.is_var:
-                node.value = variables[node.name]
             node.forward()
         return self.nodes[-1].value
 
-    def backprop(self):
+    def backprop(self, variables):
         '''
         Returns: the gradient of the function
 
         '''
-        self.nodes[-1].grad = 1
         self.vars_grads = dict()
-        for node in reversed(self.nodes):
-            node.backprop()
-            if node.is_var:
-                self.vars_grads['d{}'.format(node.name)] = node.grad
+        if len(self.vars) != 0:
+            self.nodes[-1].grad = 1
+            for node in reversed(self.nodes):
+                node.backprop()
+                if node.is_var:
+                    self.vars_grads['d{}'.format(node.name)] = node.grad
+        for var in variables:
+            if var not in self.vars:
+                self.vars_grads['d{}'.format(var)] = 0
         return self.vars_grads
 
 def evaluate_and_gradient(function, variables=None):
@@ -320,20 +319,29 @@ def evaluate_and_gradient(function, variables=None):
     Returns: the final value of the function and its gradient at the given variable values
 
     '''
-    if type(function).__name__ in NUMS:
-        function = constant(function)
-    assert isinstance(function, node), 'Loss function must be a node.'
-    if variables is None:
-        variables = dict()
-    assert type(variables).__name__ == 'dict', \
-        'Variables must be put in a dictionary of the form: \n {{variable_name: value, ...}}'
+    try:
+        if type(function).__name__ in NUMS:
+            function = constant(function)
+        assert isinstance(function, node)
+    except AssertionError:
+        print(message('Function must be a node!'))
+        sys.exit()
+    try:
+        if variables is None:
+            variables = dict()
+        assert type(variables).__name__ == 'dict'
+    except AssertionError:
+        msg = ('Variables must be put in a dictionary of the form: ' + \
+            '\n{variable_name: value, ...}')
+        print(message(msg))
+        sys.exit()
     g = ComputationalGraph(function)
     value = g.forward(variables)
-    return value, g.backprop()
+    return value, g.backprop(variables)
 
 def print_output(f, variables):
     val, grad = evaluate_and_gradient(f, variables)
-    print('=' * 30 + '\nFunction Value: {}\nGradient: {}\n'.format(val, grad) + '=' * 30)
+    print(message('Function Value: {}\nGradient: {}').format(val, grad))
 
 if __name__=='__main__':
     '''
@@ -354,6 +362,9 @@ if __name__=='__main__':
 
     '''
     # Code below
-
+    x = variable('x')
+    y = variable('y')
+    f = div(1, add(1, exp(neg(x))))
+    variables = {'x': 3, 'y': 2}
     # Code above
     print_output(f, variables)
