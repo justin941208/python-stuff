@@ -373,8 +373,8 @@ if __name__=='__main__':
     # Insert code below
     x = variable('x')
     y = variable('y')
-    f = pwr(x, 2)
-    variables = {'x': 0, 'y': 2}
+    f = div(1, add(1, exp(neg(x))))
+    variables = {'x': 3, 'y': 2}
     # Insert code above
 
     print_output(f, variables)
